@@ -7,45 +7,68 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import mean_absolute_error
 
-import os
-for dirname, _, filenames in os.walk('/Users/celineterranova/Desktop/Data/Kaggle/Titanic'):
-    for filename in filenames:
-        print(os.path.join(dirname, filename))
-
 train_data = pd.read_csv("/Users/celineterranova/Desktop/Data/Kaggle/Titanic/train.csv")
-train_data.head()
-
 test_data = pd.read_csv("/Users/celineterranova/Desktop/Data/Kaggle/Titanic/test.csv")
-test_data.head()
+
+# Function that, given a title string, checks it and replaces it with the correct title
+def title_corr(t):
+    newt = t
+    if t == 'Mrs' or t == 'Mr' or t == 'Miss':
+        return newt
+    elif t == 'Capt' or t == 'Col' or t == 'Major' or t == 'Dr' or t == 'Rev':
+        newt = 'Crew'
+    elif t == 'Jonkheer' or t == 'Sir' or t == 'the Countess' or t == 'Lady' or t == 'Master':
+        newt = 'Noble'
+    elif t == 'Don':
+        newt = 'Mr'
+    elif t == 'Dona' or t == 'Ms' or t == 'Mme':
+        newt = 'Mrs'
+    elif t == 'Mlle':
+        newt = 'Miss'
+    else: print("Title not included:", t)
+    return newt
+
+# Extract the titles from the name and put them in a list, then correct them
+# Train data
+train_data.insert(3,"Titles", "Empty")
+titles = list()
+for name in train_data["Name"]:
+    titles.append(name.split(',')[1].split('.')[0].strip())
+for i in range(len(titles)):
+    titles[i] = title_corr(titles[i])
+train_data["Titles"] = titles
+# Test data
+test_data.insert(3,"Titles", "Empty")
+test_titles = list()
+for name in test_data["Name"]:
+    test_titles.append(name.split(',')[1].split('.')[0].strip())
+for i in range(len(test_titles)):
+    test_titles[i] = title_corr(test_titles[i])
+test_data["Titles"] = test_titles
+
+# Corrects for fares that don't exist
+train_data["Fare"] = train_data["Fare"].fillna(train_data["Fare"].median())
+test_data["Fare"] = test_data["Fare"].fillna(test_data["Fare"].median())
+
+# Corrects for ages that don't exist
+def calc_age(df):
+    a = df.groupby(["Pclass", "Sex", "Titles"], as_index=False).median()["Age"]
+    return a
+
+train_data["Age"] = train_data["Age"].fillna(calc_age(train_data))
+test_data["Age"] = test_data["Age"].fillna(calc_age(train_data))
+
+print(train_data["Age"].values)
+print(test_data["Age"].values)
 
 
 # CHOOSE FEATURES AND VALUES FOR THE MODEL
 y = train_data["Survived"]
-features = ["Pclass", "Sex", "SibSp", "Parch"]
-# features = ["Pclass", "Sex", "SibSp", "Parch", "Age"]
-# train_data["Age"] = train_data["Age"].fillna(train_data["Age"].median())
-
+features = ["Pclass", "Sex", "SibSp", "Parch", "Fare", "Titles"]
 X = pd.get_dummies(train_data[features])
-
-# THIS PART OF THE CODE IS SOLELY FOR MODEL FITTING PURPOSES
-def get_mae(n, d, train_X, val_X, train_y, val_y):
-    model = RandomForestClassifier(n_estimators=n, max_depth=d, random_state=1)
-    model.fit(train_X, train_y)
-    preds_val = model.predict(val_X)
-    mae = mean_absolute_error(val_y, preds_val)
-    return(mae)
-train_X, val_X, train_y, val_y = train_test_split(X, y, random_state = 0)
-model = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=1)
-model.fit(train_X, train_y)
-val_predictions = model.predict(val_X)
-print("Percentage of errors on training data split: ")
-print(mean_absolute_error(val_predictions, val_y))
-
-
-
-# APPLY TO TEST DATA
-# test_data["Age"] = test_data["Age"].fillna(test_data["Age"].median())
 X_test = pd.get_dummies(test_data[features])
+
+# Model, fit and predict
 model = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=1)
 model.fit(X, y)
 y_test = model.predict(X_test)
