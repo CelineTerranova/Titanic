@@ -10,6 +10,7 @@ from sklearn.metrics import mean_absolute_error
 train_data = pd.read_csv("/Users/celineterranova/Desktop/Data/Kaggle/Titanic/train.csv")
 test_data = pd.read_csv("/Users/celineterranova/Desktop/Data/Kaggle/Titanic/test.csv")
 
+# DEAL WITH TITLES
 # Function that, given a title string, checks it and replaces it with the correct title
 def title_corr(t):
     newt = t
@@ -30,7 +31,7 @@ def title_corr(t):
 
 # Extract the titles from the name and put them in a list, then correct them
 # Train data
-train_data.insert(3,"Titles", "Empty")
+train_data.insert(4,"Titles", "Empty")
 titles = list()
 for name in train_data["Name"]:
     titles.append(name.split(',')[1].split('.')[0].strip())
@@ -46,29 +47,45 @@ for i in range(len(test_titles)):
     test_titles[i] = title_corr(test_titles[i])
 test_data["Titles"] = test_titles
 
-# Corrects for fares that don't exist
+
+# FILL UP FARES THAT DON'T EXIST
 train_data["Fare"] = train_data["Fare"].fillna(train_data["Fare"].median())
 test_data["Fare"] = test_data["Fare"].fillna(test_data["Fare"].median())
 
-# Corrects for ages that don't exist
-def calc_age(df):
-    a = df.groupby(["Pclass", "Sex", "Titles"], as_index=False).median()["Age"]
-    return a
 
-train_data["Age"] = train_data["Age"].fillna(calc_age(train_data))
-test_data["Age"] = test_data["Age"].fillna(calc_age(train_data))
+# FILL UP AGES THAT DON'T EXIST
+# Function that returns a table with the median age for passengers from a certain class, sex and title
+def calc_age(df, cl, sx, tl):
+    a = df.groupby(["Pclass", "Sex", "Titles"])["Age"].median()
+    return a[cl][sx][tl]
 
-print(train_data["Age"].values)
-print(test_data["Age"].values)
+# Loops over the df and replace the missing ages (train)
+for i, row in train_data.iterrows():
+    if pd.isna(row['Age']) :
+        newage = (calc_age(train_data, row["Pclass"], row["Sex"], row["Titles"]))
+        train_data.at[i,'Age'] = newage
+    else: continue
+# Same for test data
+for i, row in test_data.iterrows():
+    if pd.isna(row['Age']) :
+        newage = (calc_age(test_data, row["Pclass"], row["Sex"], row["Titles"]))
+        test_data.at[i,'Age'] = newage
+    else: continue
+
+# COMBINE SIBSP AND PARCH TO A SINGLE PARAMETER "FAMILY"
+train_data.insert(9,"Family", "Empty")
+train_data["Family"] = train_data["SibSp"] + train_data["Parch"]
+test_data.insert(8,"Family", "Empty")
+test_data["Family"] = test_data["SibSp"] + test_data["Parch"]
 
 
 # CHOOSE FEATURES AND VALUES FOR THE MODEL
 y = train_data["Survived"]
-features = ["Pclass", "Sex", "SibSp", "Parch", "Fare", "Titles"]
+features = ["Pclass", "Sex", "Family", "Fare", "Titles", "Age", "Embarked"]
 X = pd.get_dummies(train_data[features])
 X_test = pd.get_dummies(test_data[features])
 
-# Model, fit and predict
+# MODEL, FIT AND PREDICT
 model = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=1)
 model.fit(X, y)
 y_test = model.predict(X_test)

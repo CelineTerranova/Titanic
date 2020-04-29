@@ -34,104 +34,104 @@ plot.rcParams.update(params)
 train_data['Died'] = 1 - train_data['Survived']
 
 # PLOT BY SEX (ABSOLUTE AND RELATIVE)
-# train_data.groupby('Sex').agg('sum')[['Survived', 'Died']].plot(kind='bar', stacked=True)
-# plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
-# train_data.groupby('Sex').agg('mean')[['Survived', 'Died']].plot(kind='bar', stacked=True)
-# plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
-# plt.show()
+train_data.groupby('Sex').agg('sum')[['Survived', 'Died']].plot(kind='bar', stacked=True)
+plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
+train_data.groupby('Sex').agg('mean')[['Survived', 'Died']].plot(kind='bar', stacked=True)
+plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
+plt.show()
 
 
 # PLOT BY CLASS
-# train_data.groupby('Pclass').agg('mean')[['Survived', 'Died']].plot(kind='bar', stacked=True)
-# plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
-# plt.show()
+train_data.groupby('Pclass').agg('mean')[['Survived', 'Died']].plot(kind='bar', stacked=True)
+plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
+plt.show()
 
 
-# # PLOT BY NUMBER OF SPOUSES AND/OR SIBLINGS
-# train_data.groupby('SibSp').agg('mean')[['Survived', 'Died']].plot(kind='bar', stacked=True)
-# plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
-# plt.show()
-#
-# # PLOT BY NUMBER OF PARENTS AND/OR CHILDREN
-# train_data.groupby('Parch').agg('mean')[['Survived', 'Died']].plot(kind='bar', stacked=True)
-# plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
-# plt.show()
+# PLOT BY NUMBER OF SPOUSES AND/OR SIBLINGS
+train_data.groupby('SibSp').agg('mean')[['Survived', 'Died']].plot(kind='bar', stacked=True)
+plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
+plt.show()
+
+# PLOT BY NUMBER OF PARENTS AND/OR CHILDREN
+train_data.groupby('Parch').agg('mean')[['Survived', 'Died']].plot(kind='bar', stacked=True)
+plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
+plt.show()
 
 # PLOT BY FARE
-# plt.hist([train_data[train_data['Survived'] == 1]['Fare'], train_data[train_data['Survived'] == 0]['Fare']], bins = 30, label = ['Survived','Dead'])
-# plt.xlabel('Fare')
-# plt.ylabel('Number of passengers')
-# plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
-# plt.show()
+plt.hist([train_data[train_data['Survived'] == 1]['Fare'], train_data[train_data['Survived'] == 0]['Fare']], bins = 30, label = ['Survived','Dead'])
+plt.xlabel('Fare')
+plt.ylabel('Number of passengers')
+plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
+plt.show()
 
 # PLOT BY FARE FOR EACH CLASS
-# plt.hist([train_data[train_data['Survived'] == 1][train_data['Pclass'] == 1]['Fare'], train_data[train_data['Survived'] == 0][train_data['Pclass'] == 1]['Fare']], bins = 30, label = ['Survived','Dead'])
-# plt.xlabel('Fare')
-# plt.ylabel('Number of passengers (1st class)')
-# plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
-# plt.show()
-# plt.hist([train_data[train_data['Survived'] == 1][train_data['Pclass'] == 2]['Fare'], train_data[train_data['Survived'] == 0][train_data['Pclass'] == 2]['Fare']], bins = 30, label = ['Survived','Dead'])
-# plt.xlabel('Fare')
-# plt.ylabel('Number of passengers (2nd class)')
-# plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
-# plt.show()
-# plt.hist([train_data[train_data['Survived'] == 1][train_data['Pclass'] == 3]['Fare'], train_data[train_data['Survived'] == 0][train_data['Pclass'] == 3]['Fare']], bins = 30, label = ['Survived','Dead'])
-# plt.xlabel('Fare')
-# plt.ylabel('Number of passengers (3rd class)')
-# plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
-# plt.show()
+plt.hist([train_data[train_data['Survived'] == 1][train_data['Pclass'] == 1]['Fare'], train_data[train_data['Survived'] == 0][train_data['Pclass'] == 1]['Fare']], bins = 30, label = ['Survived','Dead'])
+plt.xlabel('Fare')
+plt.ylabel('Number of passengers (1st class)')
+plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
+plt.show()
+plt.hist([train_data[train_data['Survived'] == 1][train_data['Pclass'] == 2]['Fare'], train_data[train_data['Survived'] == 0][train_data['Pclass'] == 2]['Fare']], bins = 30, label = ['Survived','Dead'])
+plt.xlabel('Fare')
+plt.ylabel('Number of passengers (2nd class)')
+plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
+plt.show()
+plt.hist([train_data[train_data['Survived'] == 1][train_data['Pclass'] == 3]['Fare'], train_data[train_data['Survived'] == 0][train_data['Pclass'] == 3]['Fare']], bins = 30, label = ['Survived','Dead'])
+plt.xlabel('Fare')
+plt.ylabel('Number of passengers (3rd class)')
+plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
+plt.show()
 
 
 # PLOT BY TITLE
-# # Function that, given a title string, checks it and replaces it with the correct title
-# def title_corr(t):
-#     newt = t
-#     if t == 'Mrs' or t == 'Mr' or t == 'Miss':
-#         return newt
-#     elif t == 'Capt' or t == 'Col' or t == 'Major' or t == 'Dr' or t == 'Rev':
-#         newt = 'Crew'
-#     elif t == 'Jonkheer' or t == 'Sir' or t == 'the Countess' or t == 'Lady' or t == 'Master':
-#         newt = 'Noble'
-#     elif t == 'Don':
-#         newt = 'Mr'
-#     elif t == 'Dona' or t == 'Ms' or t == 'Mme':
-#         newt = 'Mrs'
-#     elif t == 'Mlle':
-#         newt = 'Miss'
-#     else: print("Title not included:", t)
-#     return newt
-#
-# # Extract the titles from the name and put them in a list
-# titles = list()
-# for name in train_data["Name"]:
-#     titles.append(name.split(',')[1].split('.')[0].strip())
-#
-# for i in range(len(titles)):
-#     titles[i] = title_corr(titles[i])
-#
-# train_data["Titles"] = titles
-#
-# plt.hist([train_data[train_data['Survived'] == 1]['Titles'], train_data[train_data['Survived'] == 0]['Titles']], label = ['Survived','Dead'])
-# plt.xlabel('Title')
-# plt.ylabel('Number of passengers')
-# plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
-# plt.show()
+# Function that, given a title string, checks it and replaces it with the correct title
+def title_corr(t):
+    newt = t
+    if t == 'Mrs' or t == 'Mr' or t == 'Miss':
+        return newt
+    elif t == 'Capt' or t == 'Col' or t == 'Major' or t == 'Dr' or t == 'Rev':
+        newt = 'Crew'
+    elif t == 'Jonkheer' or t == 'Sir' or t == 'the Countess' or t == 'Lady' or t == 'Master':
+        newt = 'Noble'
+    elif t == 'Don':
+        newt = 'Mr'
+    elif t == 'Dona' or t == 'Ms' or t == 'Mme':
+        newt = 'Mrs'
+    elif t == 'Mlle':
+        newt = 'Miss'
+    else: print("Title not included:", t)
+    return newt
+
+# Extract the titles from the name and put them in a list
+titles = list()
+for name in train_data["Name"]:
+    titles.append(name.split(',')[1].split('.')[0].strip())
+
+for i in range(len(titles)):
+    titles[i] = title_corr(titles[i])
+
+train_data["Titles"] = titles
+
+plt.hist([train_data[train_data['Survived'] == 1]['Titles'], train_data[train_data['Survived'] == 0]['Titles']], label = ['Survived','Dead'])
+plt.xlabel('Title')
+plt.ylabel('Number of passengers')
+plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
+plt.show()
 
 # PLOT BY AGE
-# plt.hist([train_data[train_data['Survived'] == 1]['Age'], train_data[train_data['Survived'] == 0]['Age']], bins = 8, label = ['Survived','Dead'])
-# plt.xlabel('Age')
-# plt.ylabel('Number of passengers')
-# plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
-# plt.show()
-#
-# # PLOT BY AGE FOR MEN AND WOMEN
-# plt.hist([train_data[train_data['Survived'] == 1][train_data['Sex'] == 'female']['Age'], train_data[train_data['Survived'] == 0][train_data['Sex'] == 'female']['Age']], bins = 8, label = ['Survived','Dead'])
-# plt.xlabel('Age')
-# plt.ylabel('Number of women')
-# plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
-# plt.show()
-# plt.hist([train_data[train_data['Survived'] == 1][train_data['Sex'] == 'male']['Age'], train_data[train_data['Survived'] == 0][train_data['Sex'] == 'male']['Age']], bins = 8, label = ['Survived','Dead'])
-# plt.xlabel('Age')
-# plt.ylabel('Number of men')
-# plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
-# plt.show()
+plt.hist([train_data[train_data['Survived'] == 1]['Age'], train_data[train_data['Survived'] == 0]['Age']], bins = 8, label = ['Survived','Dead'])
+plt.xlabel('Age')
+plt.ylabel('Number of passengers')
+plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
+plt.show()
+
+# PLOT BY AGE FOR MEN AND WOMEN
+plt.hist([train_data[train_data['Survived'] == 1][train_data['Sex'] == 'female']['Age'], train_data[train_data['Survived'] == 0][train_data['Sex'] == 'female']['Age']], bins = 8, label = ['Survived','Dead'])
+plt.xlabel('Age')
+plt.ylabel('Number of women')
+plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
+plt.show()
+plt.hist([train_data[train_data['Survived'] == 1][train_data['Sex'] == 'male']['Age'], train_data[train_data['Survived'] == 0][train_data['Sex'] == 'male']['Age']], bins = 8, label = ['Survived','Dead'])
+plt.xlabel('Age')
+plt.ylabel('Number of men')
+plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
+plt.show()
