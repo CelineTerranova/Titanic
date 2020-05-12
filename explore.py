@@ -135,3 +135,19 @@ plt.xlabel('Age')
 plt.ylabel('Number of men')
 plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
 plt.show()
+
+# DIVIDE AGE IN GROUPS AND CALCULATE SURVIVAL RATE FOR EACH
+train_data['AgeGroup'] = pd.cut(train_data['Age'],5)
+print(train_data[['AgeGroup', 'Survived']].groupby('AgeGroup', as_index=False).mean().sort_values('Survived', ascending=False))
+
+# DIVIDE FARES IN GROUPS AND CALCULATE SURVIVAL RATE FOR EACH
+train_data['AgeGroup'] = pd.cut(train_data['Fare'],3)
+print(train_data[['AgeGroup', 'Survived']].groupby('AgeGroup', as_index=False).mean().sort_values('Survived', ascending=False))
+
+# PLOT BY EMBARKED
+train_data["Embarked"] = train_data["Embarked"].fillna('S')
+plt.hist([train_data[train_data['Survived'] == 1]['Embarked'], train_data[train_data['Survived'] == 0]['Embarked']], label = ['Survived','Dead'])
+plt.xlabel('Embarked (C = Cherbourg, Q = Queenstown, S = Southampton)')
+plt.ylabel('Number of passengers')
+plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
+plt.show()
