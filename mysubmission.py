@@ -101,7 +101,7 @@ def group_age(age):
 # Loops over the df and fill the Age Group column
 for i, row in train_data.iterrows():
     train_data.at[i,'Age Group'] = group_age(row["Age"])
-# Same for test data
+    # Same for test data
 for i, row in test_data.iterrows():
     test_data.at[i,'Age Group'] = group_age(row["Age"])
 
@@ -115,37 +115,99 @@ test_data["Family"] = test_data["SibSp"] + test_data["Parch"]
 # FILL MISSING DATA FOR EMBARKED IN TRAINING DATA (NO MISSING IN TEST DATA)
 train_data["Embarked"] = train_data["Embarked"].fillna('S')
 
+# WEIGH EMBARKED WITH SURVIVAL RATE
+def embarked_rate(embarked_port):
+    if embarked_port == 'C': return 2
+    if embarked_port == 'Q': return 1
+    if embarked_port == 'S': return 0
+
+train_data.insert(9,"Emb Rate", "Empty")
+for i, row in train_data.iterrows():
+    train_data.at[i,'Emb Rate'] = embarked_rate(row["Embarked"])
+test_data.insert(9,"Emb Rate", "Empty")
+for i, row in test_data.iterrows():
+    test_data.at[i,'Emb Rate'] = embarked_rate(row["Embarked"])
+
 # # DEAL WITH CATEGORICAL VARIABLES
-# cat_cols = ["Embarked"]
+# object_cols = ["Embarked", "Titles", "Sex"]
 # from sklearn.preprocessing import OneHotEncoder
-# OHE = OneHotEncoder()
-# df["OHE Embarked"] = clf.transform(np.array(df["Name"]).reshape(-1, 1))
-#
 # # Apply one-hot encoder to each column with categorical data
 # OH_encoder = OneHotEncoder(handle_unknown='ignore', sparse=False)
-# OH_cols_train = train_data.DataFrame(OH_encoder.fit_transform(train_data[object_cols]))
-# OH_cols_test = test_data.DataFrame(OH_encoder.transform(test_data[object_cols]))
+# OH_cols_train = pd.DataFrame(OH_encoder.fit_transform(train_data[object_cols]))
+# OH_cols_test= pd.DataFrame(OH_encoder.transform(test_data[object_cols]))
 # # One-hot encoding removed index; put it back
 # OH_cols_train.index = train_data.index
 # OH_cols_test.index = test_data.index
+# # Remove categorical columns (will replace with one-hot encoding)
+# num_train = train_data.drop(object_cols, axis=1)
+# num_test = test_data.drop(object_cols, axis=1)
+# # Add one-hot encoded columns to numerical features
+# OH_train = pd.concat([num_train, OH_cols_train], axis=1)
+# OH_test = pd.concat([num_test, OH_cols_test], axis=1)
 
+# REPLACE SEX WITH NUMBERS
+sex_mapping = {"male": 0, "female": 1}
+train_data['Sex'] = train_data['Sex'].map(sex_mapping)
+test_data['Sex'] = test_data['Sex'].map(sex_mapping)
+
+#map each Embarked value to a numerical value
+embarked_mapping = {"S": 0, "C": 2, "Q": 2}
+train_data['Embarked'] = train_data['Embarked'].map(embarked_mapping)
+test_data['Embarked'] = test_data['Embarked'].map(embarked_mapping)
 
 # DROP USELESS COLUMNS
-cols_to_drop = ["SibSp", "Parch", "Name", "Age", "Fare"]
+cols_to_drop = ["SibSp", "Parch", "Name", "Age", "Fare", "Cabin", "Ticket"]
+# new_train = OH_train.drop(cols_to_drop, axis=1)
+# new_test = OH_test.drop(cols_to_drop, axis=1)
 new_train = train_data.drop(cols_to_drop, axis=1)
 new_test = test_data.drop(cols_to_drop, axis=1)
 
+
+print(new_train.head())
+
 # CHOOSE FEATURES AND VALUES FOR THE MODEL
 y = new_train["Survived"]
-features = ["Pclass", "Sex", "Family", "Fare Group", "Titles", "Age Group", "Embarked"]
+# X = new_train.drop("Survived", axis=1)
+# X_test = new_test
+features = ["Pclass", "Sex", "Family", "Fare Group", "Titles", "Age Group"]
 X = pd.get_dummies(new_train[features])
 X_test = pd.get_dummies(new_test[features])
 
 # MODEL, FIT AND PREDICT
-model = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=1)
-model.fit(X, y)
-y_test = model.predict(X_test)
+model1 = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=1)
+model1.fit(X, y)
+y1_test = model1.predict(X_test)
 
-output = pd.DataFrame({'PassengerId': test_data.PassengerId, 'Survived': y_test})
+from xgboost import XGBClassifier
+model2 = XGBClassifier(max_depth=3, n_estimators=1000, learning_rate=0.05)
+model2.fit(X, y)
+y2_test = model2.predict(X_test)
+
+from sklearn.svm import SVC
+model3 = SVC(random_state=1)
+model3.fit(X,y)
+y3_test = model3.predict(X_test)
+
+from sklearn.ensemble import GradientBoostingClassifier
+model4 = GradientBoostingClassifier(random_state=42)
+model4.fit(X, y)
+y4_test = model4.predict(X_test)
+
+from sklearn.model_selection import cross_val_predict
+from sklearn.metrics import accuracy_score
+model1_preds = cross_val_predict(model1, X, y, cv=10)
+model1_acc = accuracy_score(y, model1_preds)
+model2_preds = cross_val_predict(model2, X, y, cv=10)
+model2_acc = accuracy_score(y, model2_preds)
+model3_preds = cross_val_predict(model3, X, y, cv=10)
+model3_acc = accuracy_score(y, model3_preds)
+model4_preds = cross_val_predict(model4, X, y, cv=10)
+model4_acc = accuracy_score(y, model4_preds)
+print("Random Forest Accuracy:", model1_acc)
+print("XGBoost Accuracy:", model2_acc)
+print("SVC Accuracy:", model3_acc)
+print("GB Accuracy:", model4_acc)
+
+output = pd.DataFrame({'PassengerId': test_data.PassengerId, 'Survived': y1_test})
 output.to_csv('my_submission.csv', index=False)
 print("Your submission was successfully saved!")

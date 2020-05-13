@@ -151,3 +151,6 @@ plt.xlabel('Embarked (C = Cherbourg, Q = Queenstown, S = Southampton)')
 plt.ylabel('Number of passengers')
 plt.legend(bbox_to_anchor=(1.04,1), loc="upper left")
 plt.show()
+
+# # DIVIDE EMBARKED IN GROUPS AND CALCULATE SURVIVAL RATE FOR EACH
+print(train_data[['Embarked', 'Survived']].groupby('Embarked', as_index=False).mean().sort_values('Survived', ascending=False))
