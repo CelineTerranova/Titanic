@@ -5,6 +5,7 @@ import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error
 
 train_data = pd.read_csv("/Users/celineterranova/Desktop/Data/Kaggle/Titanic/train.csv")
@@ -74,16 +75,25 @@ def calc_age(df, cl, sx, tl):
     a = df.groupby(["Pclass", "Sex", "Titles"])["Age"].median()
     return a[cl][sx][tl]
 
-# Loops over the df and replace the missing ages (train)
+# Merging datasets.
+age_train = train_data.copy()
+age_train.drop('PassengerId', axis=1, inplace=True)
+age_train.drop('Survived',axis=1, inplace=True)
+age_test = test_data.copy()
+age_test.drop('PassengerId', axis=1, inplace=True)
+df = pd.concat([age_train, age_test], sort=False).reset_index(drop=True)
+# print(df.shape)
+
+# Fill up missing ages
 for i, row in train_data.iterrows():
     if pd.isna(row['Age']) :
-        newage = (calc_age(train_data, row["Pclass"], row["Sex"], row["Titles"]))
+        newage = (calc_age(df, row["Pclass"], row["Sex"], row["Titles"]))
         train_data.at[i,'Age'] = newage
     else: continue
 # Same for test data
 for i, row in test_data.iterrows():
     if pd.isna(row['Age']) :
-        newage = (calc_age(test_data, row["Pclass"], row["Sex"], row["Titles"]))
+        newage = (calc_age(df, row["Pclass"], row["Sex"], row["Titles"]))
         test_data.at[i,'Age'] = newage
     else: continue
 
@@ -163,7 +173,7 @@ new_train = train_data.drop(cols_to_drop, axis=1)
 new_test = test_data.drop(cols_to_drop, axis=1)
 
 
-print(new_train.head())
+# print(new_train.head())
 
 # CHOOSE FEATURES AND VALUES FOR THE MODEL
 y = new_train["Survived"]
@@ -193,6 +203,7 @@ model4 = GradientBoostingClassifier(random_state=42)
 model4.fit(X, y)
 y4_test = model4.predict(X_test)
 
+
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import accuracy_score
 model1_preds = cross_val_predict(model1, X, y, cv=10)
@@ -203,6 +214,7 @@ model3_preds = cross_val_predict(model3, X, y, cv=10)
 model3_acc = accuracy_score(y, model3_preds)
 model4_preds = cross_val_predict(model4, X, y, cv=10)
 model4_acc = accuracy_score(y, model4_preds)
+
 print("Random Forest Accuracy:", model1_acc)
 print("XGBoost Accuracy:", model2_acc)
 print("SVC Accuracy:", model3_acc)
