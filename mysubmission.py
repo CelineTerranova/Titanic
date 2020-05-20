@@ -70,7 +70,7 @@ for i, row in test_data.iterrows():
 
 
 # FILL UP AGES THAT DON'T EXIST
-# Function that returns a table with the median age for passengers from a certain class, sex and title
+# Function that returns the median age for passengers from a certain class, sex and title
 def calc_age(df, cl, sx, tl):
     a = df.groupby(["Pclass", "Sex", "Titles"])["Age"].median()
     return a[cl][sx][tl]
@@ -160,11 +160,6 @@ sex_mapping = {"male": 0, "female": 1}
 train_data['Sex'] = train_data['Sex'].map(sex_mapping)
 test_data['Sex'] = test_data['Sex'].map(sex_mapping)
 
-#map each Embarked value to a numerical value
-embarked_mapping = {"S": 0, "C": 2, "Q": 2}
-train_data['Embarked'] = train_data['Embarked'].map(embarked_mapping)
-test_data['Embarked'] = test_data['Embarked'].map(embarked_mapping)
-
 # DROP USELESS COLUMNS
 cols_to_drop = ["SibSp", "Parch", "Name", "Age", "Fare", "Cabin", "Ticket"]
 # new_train = OH_train.drop(cols_to_drop, axis=1)
@@ -180,10 +175,61 @@ y = new_train["Survived"]
 # X = new_train.drop("Survived", axis=1)
 # X_test = new_test
 features = ["Pclass", "Sex", "Family", "Fare Group", "Titles", "Age Group"]
+
+
+
+# # PREDICT ACCURACY
+# from sklearn.model_selection import train_test_split
+#
+#
+# predictors = pd.get_dummies(new_train[features])
+# target = new_train["Survived"]
+# x_train, x_val, y_train, y_val = train_test_split(predictors, target, test_size = 0.22, random_state = 0)
+#
+# # MODEL, FIT AND PREDICT
+# model1 = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=1)
+# model1.fit(x_train, y_train)
+# y1_pred = model1.predict(x_val)
+#
+# from xgboost import XGBClassifier
+# model2 = XGBClassifier(max_depth=3, n_estimators=1000, learning_rate=0.05)
+# model2.fit(x_train, y_train)
+# y2_pred = model2.predict(x_val)
+#
+# from sklearn.svm import SVC
+# model3 = SVC(random_state=1)
+# model3.fit(x_train, y_train)
+# y3_pred = model3.predict(x_val)
+#
+# from sklearn.ensemble import GradientBoostingClassifier
+# model4 = GradientBoostingClassifier(random_state=42)
+# model4.fit(x_train, y_train)
+# y4_pred = model4.predict(x_val)
+#
+# from sklearn.model_selection import cross_val_predict
+# from sklearn.metrics import accuracy_score
+# model1_acc = round(accuracy_score(y1_pred, y_val) * 100, 4)
+# model2_acc = round(accuracy_score(y2_pred, y_val) * 100, 4)
+# model3_acc = round(accuracy_score(y3_pred, y_val) * 100, 4)
+# model4_acc = round(accuracy_score(y4_pred, y_val) * 100, 4)
+#
+# # print("Random Forest Accuracy:", model1_acc)
+# # print("XGBoost Accuracy:", model2_acc)
+# # print("SVC Accuracy:", model3_acc)
+# # print("GB Accuracy:", model4_acc)
+#
+#
+# models = pd.DataFrame({
+#     'Model': ['Random Forest Classfier', 'XGBClassifier', 'SVC',
+#               'Gradient Boosting Classifier'],
+#     'Score': [model1_acc, model2_acc, model3_acc, model4_acc]})
+# print(models.sort_values(by='Score', ascending=False))
+
+
 X = pd.get_dummies(new_train[features])
 X_test = pd.get_dummies(new_test[features])
 
-# MODEL, FIT AND PREDICT
+# # MODEL, FIT AND PREDICT
 model1 = RandomForestClassifier(n_estimators=100, max_depth=5, random_state=1)
 model1.fit(X, y)
 y1_test = model1.predict(X_test)
@@ -203,7 +249,6 @@ model4 = GradientBoostingClassifier(random_state=42)
 model4.fit(X, y)
 y4_test = model4.predict(X_test)
 
-
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import accuracy_score
 model1_preds = cross_val_predict(model1, X, y, cv=10)
@@ -220,6 +265,91 @@ print("XGBoost Accuracy:", model2_acc)
 print("SVC Accuracy:", model3_acc)
 print("GB Accuracy:", model4_acc)
 
-output = pd.DataFrame({'PassengerId': test_data.PassengerId, 'Survived': y1_test})
-output.to_csv('my_submission.csv', index=False)
+
+# HYPERPARAMETER TUNING
+# Generating paramater grids for predictors
+model1_param = [
+    {'max_depth':[2,4,8],
+    'min_samples_split':[2,4,6,8,10],
+    'min_samples_leaf':[2,4,6,8,10],
+    'n_estimators':[100,300]}
+]
+
+model2_param = [
+    {'max_depth':[2,4,8],
+    'min_samples_split':[2,4,6,8,10],
+    'min_samples_leaf':[2,4,6,8,10],
+    'learning_rate':[0.01, 0.05, 0.1],
+    'n_estimators':[500,800]}
+]
+
+model3_param = [
+    {'C':[0.001, 0.01, 0.1, 1.0, 10.0],
+    'gamma':[0.001, 0.01, 0.1, 1.0],
+    'kernel':['rbf', 'sigmoid']}
+]
+
+model4_param = [
+    {'max_depth':[2,160],
+    'min_samples_split':[2,4,6,10],
+    'min_samples_leaf':[2,4,6,10],
+    'learning_rate':[0.01, 0.05, 0.1],
+    'n_estimators':[100,300],
+    'subsample':[0.5, 1.0]}
+]
+
+from sklearn.model_selection import GridSearchCV
+model1_grid = GridSearchCV(model1, model1_param, cv=5)
+model1_grid.fit(X, y)
+model1_best = model1_grid.best_estimator_
+print("Model 1 done")
+model2_grid = GridSearchCV(model2, model2_param, cv=5)
+model2_grid.fit(X, y)
+model2_best = model2_grid.best_estimator_
+print("Model 2 done")
+model3_grid = GridSearchCV(model3, model3_param, cv=5)
+model3_grid.fit(X, y)
+model3_best = model3_grid.best_estimator_
+print("Model 3 done")
+model4_grid = GridSearchCV(model4, model4_param, cv=5)
+model4_grid.fit(X, y)
+model4_best = model4_grid.best_estimator_
+print("Model 4 done")
+
+
+model1_best.fit(X, y)
+model2_best.fit(X, y)
+model3_best.fit(X, y)
+model4_best.fit(X, y)
+
+model1_best_preds = cross_val_predict(model1_best, X, y, cv=10)
+model1_best_acc = accuracy_score(y, model1_best_preds)
+model2_best_preds = cross_val_predict(model2_best, X, y, cv=10)
+model2_best_acc = accuracy_score(y, model2_best_preds)
+model3_best_preds = cross_val_predict(model3_best, X, y, cv=10)
+model3_best_acc = accuracy_score(y, model3_best_preds)
+model4_best_preds = cross_val_predict(model4_best, X, y, cv=10)
+model4_best_acc = accuracy_score(y, model4_best_preds)
+
+print("BEST Random Forest Accuracy:", model1_best_acc)
+print("BEST XGBoost Accuracy:", model2_best_acc)
+print("BEST SVC Accuracy:", model3_best_acc)
+print("BEST GB Accuracy:", model4_best_acc)
+
+
+model1_best_predict = model1_best.predict(X_test)
+model2_best_predict = model2_best.predict(X_test)
+model3_best_predict = model3_best.predict(X_test)
+model4_best_predict = model4_best.predict(X_test)
+
+
+output = pd.DataFrame({'PassengerId': test_data.PassengerId, 'Survived': model1_best_predict})
+output.to_csv('my_submission_Random.csv', index=False)
+output = pd.DataFrame({'PassengerId': test_data.PassengerId, 'Survived': model2_best_predict})
+output.to_csv('my_submission_XGBoost.csv', index=False)
+output = pd.DataFrame({'PassengerId': test_data.PassengerId, 'Survived': model3_best_predict})
+output.to_csv('my_submission_SVC.csv', index=False)
+output = pd.DataFrame({'PassengerId': test_data.PassengerId, 'Survived': model4_best_predict})
+output.to_csv('my_submission_GB.csv', index=False)
+
 print("Your submission was successfully saved!")

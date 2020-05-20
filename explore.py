@@ -141,8 +141,8 @@ train_data['AgeGroup'] = pd.cut(train_data['Age'],5)
 print(train_data[['AgeGroup', 'Survived']].groupby('AgeGroup', as_index=False).mean().sort_values('Survived', ascending=False))
 
 # DIVIDE FARES IN GROUPS AND CALCULATE SURVIVAL RATE FOR EACH
-train_data['AgeGroup'] = pd.cut(train_data['Fare'],3)
-print(train_data[['AgeGroup', 'Survived']].groupby('AgeGroup', as_index=False).mean().sort_values('Survived', ascending=False))
+train_data['FareGroup'] = pd.cut(train_data['Fare'],3)
+print(train_data[['FareGroup', 'Survived']].groupby('FareGroup', as_index=False).mean().sort_values('Survived', ascending=False))
 
 # PLOT BY EMBARKED
 train_data["Embarked"] = train_data["Embarked"].fillna('S')
